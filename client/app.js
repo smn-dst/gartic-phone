@@ -19,9 +19,13 @@ document.getElementById('join-button').onclick = () => {
 // when the server sends something
 ws.onmessage = (event) => {
     const data = JSON.parse(event.data)
-    
+
     if (data.type === 'players') {
         displayPlayers(data.players)
+    }
+
+    if (data.type === 'game_start') {
+        alert('La partie a commencé !')
     }
 }
 
@@ -32,4 +36,8 @@ function displayPlayers(players) {
         li.textContent = player.pseudo
         playersList.appendChild(li)
     }
+}
+
+document.getElementById('btn-ready').onclick = () => {
+    ws.send(JSON.stringify({ type: 'ready' }))
 }
