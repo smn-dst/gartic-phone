@@ -5,30 +5,49 @@ import { WebSocketServer } from 'ws'
 
 const app = new Hono()
 
-// list players
+// Connected players
 const players = new Map()
 
-// send list players to all players
-function broadcastPlayers() {
-    const liste = [...players.values()].map((p) => ({
-        id: p.id,
-        pseudo: p.pseudo,
-    }))
-    const message = JSON.stringify({ type: 'players', players: liste })
+let gameStarted = false
 
+function broadcast(message) {
+    const text = JSON.stringify(message)
     for (const p of players.values()) {
         try {
-            p.socket.send(message)
+            p.socket.send(text)
         } catch (e) {
-            // if the send fails (connection is closing), we ignore
+            // ignore sockets that are closing
         }
     }
+}
+
+// Send the current player list to everyone
+function broadcastPlayers() {
+    const list = [...players.values()].map((p) => ({
+        id: p.id,
+        pseudo: p.pseudo,
+        ready: p.ready,
+    }))
+    broadcast({ type: 'players', players: list })
+}
+
+// Start the game once every player is ready (and we have at least 2)
+function checkStart() {
+    if (gameStarted) return
+    if (players.size < 2) return
+
+    const everyoneReady = [...players.values()].every((p) => p.ready)
+    if (!everyoneReady) return
+
+    gameStarted = true
+    broadcast({ type: 'game_start' })
+    console.log('La partie a commencé !')
 }
 
 app.get(
     '/ws',
     upgradeWebSocket(() => {
-        // these variables are specific to this connection
+        // These variables belong to THIS connection only
         let socket = null
         let player = null
 
@@ -40,22 +59,33 @@ app.get(
             onMessage(event, ws) {
                 const data = JSON.parse(event.data)
 
+                // A player joins with a pseudo
                 if (data.type === 'join') {
                     player = {
                         id: crypto.randomUUID(),
                         pseudo: data.pseudo,
+                        ready: false,
                         socket: socket,
                     }
                     players.set(player.id, player)
-                    console.log(player.pseudo, 'a rejoint')
+                    console.log(player.pseudo, 'joined')
                     broadcastPlayers()
+                }
+
+                // A player marks himself as ready
+                if (data.type === 'ready') {
+                    if (player) {
+                        player.ready = true
+                        broadcastPlayers()
+                        checkStart()
+                    }
                 }
             },
 
             onClose() {
                 if (player) {
                     players.delete(player.id)
-                    console.log(player.pseudo, 'est parti')
+                    console.log(player.pseudo, 'left')
                     broadcastPlayers()
                 }
             },
@@ -73,6 +103,6 @@ serve(
         port: 3000,
     },
     (info) => {
-        console.log(`Serveur lancé sur http://localhost:${info.port}`)
+        console.log(`Serveur en cours d'exécution sur http://localhost:${info.port}`)
     }
 )
