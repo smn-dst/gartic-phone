@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gartic Phone - Test</title>
+</head>
+
+<body>
+    <h1>Test de connexion WebSocket</h1>
+    <button id="envoyer">Envoyer un message au serveur</button>
+    <ul id="messages"></ul>
+
+    <script>
+        const ws = new WebSocket('ws://' + location.host + '/ws')
+        const liste = document.getElementById('messages')
+
+        function ajouterMessage(texte) {
+            const li = document.createElement('li')
+            li.textContent = texte
+            liste.appendChild(li)
+        }
+
+        ws.onopen = () => ajouterMessage('Connecté au serveur')
+        ws.onmessage = (event) => ajouterMessage('Serveur : ' + event.data)
+        ws.onclose = () => ajouterMessage('Déconnecté')
+
+        document.getElementById('envoyer').onclick = () => {
+            ws.send('Salut serveur !')
+        }
+    </script>
+</body>
+
+</html>
