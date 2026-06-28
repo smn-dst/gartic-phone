@@ -5,10 +5,16 @@ import { WebSocketServer } from 'ws'
 
 const app = new Hono()
 
-// Connected players
+// players: id -> { id, pseudo, ready, socket }
 const players = new Map()
 
 let gameStarted = false
+
+// round players, frozen at start
+let playerOrder = []
+
+// notebooks: { ownerId, entries: [{ type, content, authorId }] }
+let notebooks = []
 
 function broadcast(message) {
     const text = JSON.stringify(message)
@@ -16,12 +22,11 @@ function broadcast(message) {
         try {
             p.socket.send(text)
         } catch (e) {
-            // ignore sockets that are closing
+            // skip closing sockets
         }
     }
 }
 
-// Send the current player list to everyone
 function broadcastPlayers() {
     const list = [...players.values()].map((p) => ({
         id: p.id,
@@ -31,7 +36,7 @@ function broadcastPlayers() {
     broadcast({ type: 'players', players: list })
 }
 
-// Start the game once every player is ready (and we have at least 2)
+// start: all ready, min 2
 function checkStart() {
     if (gameStarted) return
     if (players.size < 2) return
@@ -40,14 +45,24 @@ function checkStart() {
     if (!everyoneReady) return
 
     gameStarted = true
+
+    // freeze order, init notebooks
+    playerOrder = [...players.keys()]
+    notebooks = playerOrder.map((id) => ({ ownerId: id, entries: [] }))
+
     broadcast({ type: 'game_start' })
-    console.log('La partie a commencé !')
+    broadcast({ type: 'ask_word' }) // ask words
+    console.log('Game started, asking for words')
+}
+
+// true when every notebook has its word
+function allWordsReceived() {
+    return notebooks.every((n) => n.entries.length >= 1)
 }
 
 app.get(
     '/ws',
     upgradeWebSocket(() => {
-        // These variables belong to THIS connection only
         let socket = null
         let player = null
 
@@ -59,7 +74,7 @@ app.get(
             onMessage(event, ws) {
                 const data = JSON.parse(event.data)
 
-                // A player joins with a pseudo
+                // join
                 if (data.type === 'join') {
                     player = {
                         id: crypto.randomUUID(),
@@ -72,12 +87,30 @@ app.get(
                     broadcastPlayers()
                 }
 
-                // A player marks himself as ready
-                if (data.type === 'ready') {
-                    if (player) {
-                        player.ready = true
-                        broadcastPlayers()
-                        checkStart()
+                // ready
+                if (data.type === 'ready' && player) {
+                    player.ready = true
+                    broadcastPlayers()
+                    checkStart()
+                }
+
+                // word
+                if (data.type === 'word' && player && gameStarted) {
+                    // owner notebook, first entry
+                    const nb = notebooks.find((n) => n.ownerId === player.id)
+                    if (nb && nb.entries.length === 0) {
+                        nb.entries.push({
+                            type: 'word',
+                            content: data.word,
+                            authorId: player.id,
+                        })
+                        console.log(player.pseudo, 'word:', data.word)
+                    }
+
+                    if (allWordsReceived()) {
+                        console.log('All words received')
+                        // temp signal; next: first drawing turn
+                        broadcast({ type: 'all_words_in' })
                     }
                 }
             },
@@ -103,6 +136,6 @@ serve(
         port: 3000,
     },
     (info) => {
-        console.log(`Serveur en cours d'exécution sur http://localhost:${info.port}`)
+        console.log(`Server running on http://localhost:${info.port}`)
     }
 )

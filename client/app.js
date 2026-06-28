@@ -5,10 +5,10 @@ const roomScreen = document.getElementById('room-screen')
 const pseudoInput = document.getElementById('pseudo-input')
 const playersList = document.getElementById('players-list')
 
-// when the user clicks on "Join"
+// join click
 document.getElementById('join-button').onclick = () => {
     const pseudo = pseudoInput.value.trim()
-    if (pseudo === '') return // no empty pseudo
+    if (pseudo === '') return // no empty
 
     ws.send(JSON.stringify({ type: 'join', pseudo: pseudo }))
 
@@ -16,7 +16,7 @@ document.getElementById('join-button').onclick = () => {
     roomScreen.style.display = 'block'
 }
 
-// when the server sends something
+// server message
 ws.onmessage = (event) => {
     const data = JSON.parse(event.data)
 
@@ -25,12 +25,17 @@ ws.onmessage = (event) => {
     }
 
     if (data.type === 'game_start') {
-        alert('La partie a commencé !')
+        document.getElementById('room-screen').style.display = 'none'
+        document.getElementById('word-screen').style.display = 'block'
+    }
+
+    if (data.type === 'all_words_in') {
+        alert('Tous les mots ont été reçus !')
     }
 }
 
 function displayPlayers(players) {
-    playersList.innerHTML = '' // empty the list
+    playersList.innerHTML = '' // reset
     for (const player of players) {
         const li = document.createElement('li')
         li.textContent = player.pseudo
@@ -40,4 +45,11 @@ function displayPlayers(players) {
 
 document.getElementById('btn-ready').onclick = () => {
     ws.send(JSON.stringify({ type: 'ready' }))
+}
+
+// send word
+document.getElementById('word-submit').onclick = () => {
+    const word = document.getElementById('word-input').value.trim()
+    if (word === '') return
+    ws.send(JSON.stringify({ type: 'word', word: word }))
 }
