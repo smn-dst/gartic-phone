@@ -3,32 +3,25 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Gartic Phone - Test</title>
+    <title>Gartic Phone</title>
 </head>
 
 <body>
-    <h1>Test de connexion WebSocket</h1>
-    <button id="envoyer">Envoyer un message au serveur</button>
-    <ul id="messages"></ul>
+    <!-- connection screen -->
+    <div id="connection-screen">
+        <h1>Rejoindre la partie</h1>
+        <input id="pseudo-input" placeholder="Ton pseudo" />
+        <button id="join-button">Rejoindre</button>
+    </div>
 
-    <script>
-        const ws = new WebSocket('ws://' + location.host + '/ws')
-        const liste = document.getElementById('messages')
+    <!-- room screen -->
+    <div id="room-screen" style="display: none;">
+        <h1>Salon</h1>
+        <h2>Joueurs connectés :</h2>
+        <ul id="players-list"></ul>
+    </div>
 
-        function ajouterMessage(texte) {
-            const li = document.createElement('li')
-            li.textContent = texte
-            liste.appendChild(li)
-        }
-
-        ws.onopen = () => ajouterMessage('Connecté au serveur')
-        ws.onmessage = (event) => ajouterMessage('Serveur : ' + event.data)
-        ws.onclose = () => ajouterMessage('Déconnecté')
-
-        document.getElementById('envoyer').onclick = () => {
-            ws.send('Salut serveur !')
-        }
-    </script>
+    <script src="/app.js"></script>
 </body>
 
 </html>

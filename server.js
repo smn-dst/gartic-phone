@@ -5,20 +5,59 @@ import { WebSocketServer } from 'ws'
 
 const app = new Hono()
 
+// list players
+const players = new Map()
+
+// send list players to all players
+function broadcastPlayers() {
+    const liste = [...players.values()].map((p) => ({
+        id: p.id,
+        pseudo: p.pseudo,
+    }))
+    const message = JSON.stringify({ type: 'players', players: liste })
+
+    for (const p of players.values()) {
+        try {
+            p.socket.send(message)
+        } catch (e) {
+            // if the send fails (connection is closing), we ignore
+        }
+    }
+}
+
 app.get(
     '/ws',
     upgradeWebSocket(() => {
+        // these variables are specific to this connection
+        let socket = null
+        let player = null
+
         return {
             onOpen(event, ws) {
-                console.log('Un client est connecté')
-                ws.send('Bienvenue depuis le serveur !')
+                socket = ws
             },
+
             onMessage(event, ws) {
-                console.log('Message reçu du client :', event.data)
-                ws.send('Le serveur a bien reçu : ' + event.data)
+                const data = JSON.parse(event.data)
+
+                if (data.type === 'join') {
+                    player = {
+                        id: crypto.randomUUID(),
+                        pseudo: data.pseudo,
+                        socket: socket,
+                    }
+                    players.set(player.id, player)
+                    console.log(player.pseudo, 'a rejoint')
+                    broadcastPlayers()
+                }
             },
+
             onClose() {
-                console.log('Un client est parti')
+                if (player) {
+                    players.delete(player.id)
+                    console.log(player.pseudo, 'est parti')
+                    broadcastPlayers()
+                }
             },
         }
     })
