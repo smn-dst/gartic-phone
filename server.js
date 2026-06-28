@@ -4,38 +4,25 @@ import { Hono } from 'hono'
 import { WebSocketServer } from 'ws'
 
 const app = new Hono()
-
-// players: id -> { id, pseudo, ready, socket }
 const players = new Map()
 
 let gameStarted = false
-
-// ids playing this round (frozen at start)
 let playerOrder = []
-
-// notebooks: { ownerId, entries: [{ type, content, authorId }] }
 let notebooks = []
-
-// turn: 0 = words, 1 = draw, 2 = guess, ...
 let currentTurn = 0
-
-// word phase timer
 let wordTimer = null
-const WORD_TIME = 60 // seconds
 
-// send to all
+const WORD_TIME = 60
+
 function broadcast(message) {
     const text = JSON.stringify(message)
     for (const p of players.values()) {
         try {
             p.socket.send(text)
-        } catch (e) {
-            // socket closing: ignore
-        }
+        } catch (e) {}
     }
 }
 
-// player list to all
 function broadcastPlayers() {
     const list = [...players.values()].map((p) => ({
         id: p.id,
@@ -45,7 +32,6 @@ function broadcastPlayers() {
     broadcast({ type: 'players', players: list })
 }
 
-// start if 2+ players and all ready
 function checkStart() {
     if (gameStarted) return
     if (players.size < 2) return
@@ -61,11 +47,9 @@ function checkStart() {
     console.log('Game started, asking for words')
 }
 
-// auto-validate words after timer
 function startWordTimer() {
     clearTimeout(wordTimer)
     wordTimer = setTimeout(() => {
-        // fill empty notebooks
         for (const nb of notebooks) {
             if (nb.entries.length === 0) {
                 nb.entries.push({ type: 'word', content: '(vide)', authorId: nb.ownerId })
@@ -75,7 +59,6 @@ function startWordTimer() {
     }, WORD_TIME * 1000)
 }
 
-// end word phase -> first turn
 function finishWordPhase() {
     clearTimeout(wordTimer)
     currentTurn = 0
@@ -88,13 +71,12 @@ function allWordsReceived() {
         .every((n) => n.entries.length >= 1)
 }
 
-// rotation: notebook = (pos - turn) mod n, never own
 function notebookIndexFor(pos, turn) {
     const n = playerOrder.length
     return ((pos - turn) % n + n) % n
 }
 
-// send each player their notebook for this turn
+// send each player
 function startTurn() {
     const isDraw = currentTurn % 2 === 1
     for (let pos = 0; pos < playerOrder.length; pos++) {
@@ -112,7 +94,6 @@ function startTurn() {
     console.log('Turn', currentTurn, isDraw ? '(draw)' : '(guess)')
 }
 
-// everyone submitted this turn?
 function allSubmitted() {
     for (let pos = 0; pos < playerOrder.length; pos++) {
         const nb = notebooks[notebookIndexFor(pos, currentTurn)]
@@ -121,7 +102,6 @@ function allSubmitted() {
     return true
 }
 
-// next turn or end
 function advanceTurn() {
     if (currentTurn >= playerOrder.length - 1) {
         broadcast({ type: 'game_over', notebooks: notebooks })
@@ -134,10 +114,8 @@ function advanceTurn() {
 }
 
 function handleLeaveDuringGame(leftId) {
-    // drop from order (notebook stays)
     playerOrder = playerOrder.filter((id) => id !== leftId)
 
-    // < 2 left: end game
     if (playerOrder.length < 2) {
         broadcast({ type: 'game_over', notebooks: notebooks })
         console.log('Game over (not enough players)')
@@ -145,9 +123,7 @@ function handleLeaveDuringGame(leftId) {
         return
     }
 
-    // turn maybe complete now
     if (currentTurn === 0) {
-        // word phase
         if (allWordsReceived()) finishWordPhase()
     } else {
         if (allSubmitted()) advanceTurn()
@@ -209,7 +185,7 @@ app.get(
                     checkStart()
                 }
 
-                // starting word (turn 0 only)
+                // starting word
                 if (data.type === 'word' && player && gameStarted && currentTurn === 0) {
                     const nb = notebooks.find((n) => n.ownerId === player.id)
                     if (nb && nb.entries.length === 0) {
@@ -219,7 +195,7 @@ app.get(
                     if (allWordsReceived()) finishWordPhase()
                 }
 
-                // drawing or guess for current turn
+                // drawing or guess
                 if (data.type === 'submit' && player && gameStarted) {
                     const pos = playerOrder.indexOf(player.id)
                     if (pos === -1) return
@@ -248,13 +224,11 @@ app.get(
                 players.delete(player.id)
                 console.log(player.pseudo, 'left')
 
-                // no game: lobby update
                 if (!gameStarted) {
                     broadcastPlayers()
                     return
                 }
 
-                // in game: handle leave
                 handleLeaveDuringGame(player.id)
                 broadcastPlayers()
             },

@@ -28,7 +28,6 @@ id('btn-rejoindre').onclick = () => {
     show('lobby')
 }
 
-// --- ready toggle ---
 id('btn-ready').onclick = () => {
     isReady = !isReady
     ws.send(JSON.stringify({ type: 'ready', ready: isReady }))
@@ -36,7 +35,7 @@ id('btn-ready').onclick = () => {
     id('lobby-status').textContent = isReady ? 'En attente des autres joueurs...' : ''
 }
 
-// leave lobby -> login
+// leave
 id('btn-leave').onclick = () => {
     ws.send(JSON.stringify({ type: 'leave' }))
     isReady = false
@@ -66,7 +65,7 @@ function startWordCountdown(seconds) {
     wordCountdown = setInterval(() => {
         left--
         id('word-timer').textContent = left + 's'
-        if (left <= 0) sendWord() // auto-validate
+        if (left <= 0) sendWord()
     }, 1000)
 }
 function stopWordCountdown() {
