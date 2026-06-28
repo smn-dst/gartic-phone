@@ -3,53 +3,75 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gartic Phone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
 </head>
 
 <body>
     <!-- login -->
-    <div id="login-screen">
-        <h1>Rejoindre la partie</h1>
-        <input id="input-pseudo" placeholder="Ton pseudo" />
-        <button id="btn-rejoindre">Rejoindre</button>
+    <div id="login-screen" class="screen">
+        <div class="card">
+            <div class="logo">Gartic <span>Phone</span></div>
+            <h1>Rejoindre la partie</h1>
+            <input id="input-pseudo" class="field" placeholder="Ton pseudo" />
+            <button id="btn-rejoindre" class="btn btn-primary btn-block">Rejoindre</button>
+        </div>
     </div>
 
     <!-- lobby -->
-    <div id="lobby-screen" style="display: none;">
-        <h1>Salon</h1>
-        <p id="lobby-me"></p>
-        <button id="btn-ready">Je suis prêt</button>
-        <p id="lobby-status"></p>
-        <h2>Joueurs connectés :</h2>
-        <ul id="players-list"></ul>
-        <button id="btn-leave">Changer de pseudo</button>
+    <div id="lobby-screen" class="screen" style="display: none;">
+        <div class="card">
+            <h1>Salon</h1>
+            <p id="lobby-me" class="me-tag"></p>
+            <button id="btn-ready" class="btn btn-success btn-block">Je suis prêt</button>
+            <p id="lobby-status" class="status"></p>
+            <h2>Joueurs connectés :</h2>
+            <ul id="players-list" class="players"></ul>
+            <button id="btn-leave" class="btn btn-ghost btn-block">Changer de pseudo</button>
+        </div>
     </div>
 
     <!-- word -->
-    <div id="word-screen" style="display: none;">
-        <h1>Ton mot</h1>
-        <p>Temps restant : <span id="word-timer"></span></p>
-        <input id="word-input" placeholder="Écris un mot" />
-        <button id="word-submit">Valider</button>
+    <div id="word-screen" class="screen" style="display: none;">
+        <div class="card">
+            <h1>Ton mot</h1>
+            <p class="timer-line">Temps restant : <span id="word-timer" class="timer"></span></p>
+            <input id="word-input" class="field" placeholder="Écris un mot" />
+            <button id="word-submit" class="btn btn-primary btn-block">Valider</button>
+        </div>
     </div>
 
     <!-- task (stub texte) -->
-    <div id="task-screen" style="display: none;">
-        <h1 id="task-title"></h1>
-        <p id="task-previous"></p>
-        <input id="task-input" placeholder="Ta réponse (texte pour l'instant)" />
-        <button id="task-submit">Valider</button>
+    <div id="task-screen" class="screen" style="display: none;">
+        <div class="card">
+            <h1 id="task-title"></h1>
+            <p id="task-previous" class="previous"></p>
+            <input id="task-input" class="field" placeholder="Ta réponse (texte pour l'instant)" />
+            <button id="task-submit" class="btn btn-primary btn-block">Valider</button>
+        </div>
     </div>
 
     <!-- waiting -->
-    <div id="waiting-screen" style="display: none;">
-        <h1>En attente des autres joueurs...</h1>
+    <div id="waiting-screen" class="screen" style="display: none;">
+        <div class="card card-center">
+            <div class="spinner"></div>
+            <h1>En attente des autres joueurs...</h1>
+        </div>
     </div>
 
     <!-- over -->
-    <div id="over-screen" style="display: none;">
-        <h1>Partie terminée</h1>
-        <pre id="over-content"></pre>
+    <div id="over-screen" class="screen" style="display: none;">
+        <div class="card">
+            <h1>Partie terminée</h1>
+            <pre id="over-content" class="result"></pre>
+            <button id="btn-new-round" class="btn btn-primary btn-block">Nouvelle manche</button>
+        </div>
     </div>
 
     <script src="/app.js"></script>

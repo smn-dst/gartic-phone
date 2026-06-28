@@ -125,6 +125,7 @@ function allSubmitted() {
 function advanceTurn() {
     if (currentTurn >= playerOrder.length - 1) {
         broadcast({ type: 'game_over', notebooks: notebooks })
+        gameStarted = false
         console.log('Game over')
         return
     }
@@ -151,6 +152,19 @@ function handleLeaveDuringGame(leftId) {
     } else {
         if (allSubmitted()) advanceTurn()
     }
+}
+
+// reset state, keep connected players
+function resetGame() {
+    clearTimeout(wordTimer)
+    gameStarted = false
+    playerOrder = []
+    notebooks = []
+    currentTurn = 0
+    for (const p of players.values()) p.ready = false
+    broadcast({ type: 'back_to_lobby' })
+    broadcastPlayers()
+    console.log('New round: back to lobby')
 }
 
 app.get(
@@ -220,6 +234,11 @@ app.get(
                         console.log(player.pseudo, 'submitted for turn', currentTurn)
                     }
                     if (allSubmitted()) advanceTurn()
+                }
+
+                // any player asks for a new round after game over
+                if (data.type === 'new_round' && !gameStarted) {
+                    resetGame()
                 }
             },
 
