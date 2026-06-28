@@ -1,0 +1,327 @@
+/* ----- reset ----- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --pink: #ff5fa2;
+    --pink-dark: #e8488d;
+    --purple: #7c5cff;
+    --purple-dark: #6645e6;
+    --blue: #38bdf8;
+    --green: #34d399;
+    --green-dark: #1fb98a;
+    --yellow: #ffd166;
+    --ink: #2b2350;
+    --muted: #8a82ad;
+    --card: #ffffff;
+    --radius: 22px;
+    --shadow: 0 18px 40px rgba(58, 32, 110, 0.18);
+}
+
+/* ----- layout ----- */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: 'Nunito', system-ui, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(135deg, #ffd166 0%, #ff5fa2 38%, #7c5cff 100%);
+    background-attachment: fixed;
+}
+
+/* playful floating bubbles in the background */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(2px);
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+}
+
+body::before {
+    width: 320px;
+    height: 320px;
+    top: -90px;
+    left: -90px;
+    background: #fff;
+}
+
+body::after {
+    width: 240px;
+    height: 240px;
+    bottom: -80px;
+    right: -60px;
+    background: var(--blue);
+}
+
+/* ----- screen + card ----- */
+.screen {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+    animation: pop 0.35s ease;
+}
+
+.card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 34px 30px;
+    box-shadow: var(--shadow);
+    border: 3px solid #fff;
+}
+
+.card-center {
+    text-align: center;
+}
+
+@keyframes pop {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ----- logo ----- */
+.logo {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 34px;
+    text-align: center;
+    line-height: 1;
+    margin-bottom: 18px;
+    color: var(--purple);
+    letter-spacing: -0.5px;
+}
+
+.logo span {
+    color: var(--pink);
+}
+
+/* ----- typography ----- */
+h1 {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 700;
+    font-size: 26px;
+    text-align: center;
+    margin-bottom: 18px;
+    color: var(--ink);
+}
+
+h2 {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--muted);
+    margin: 18px 0 10px;
+}
+
+/* ----- fields ----- */
+.field {
+    width: 100%;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    padding: 14px 16px;
+    border: 3px solid #ece8fb;
+    border-radius: 16px;
+    background: #f8f7ff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    margin-bottom: 14px;
+}
+
+.field::placeholder {
+    color: #b6afd2;
+    font-weight: 600;
+}
+
+.field:focus {
+    border-color: var(--purple);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.16);
+}
+
+/* ----- buttons ----- */
+.btn {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 700;
+    font-size: 17px;
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 13px 22px;
+    cursor: pointer;
+    transition: transform 0.08s ease, filter 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
+}
+
+.btn:hover {
+    filter: brightness(1.05);
+}
+
+.btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+}
+
+.btn-primary {
+    background: var(--purple);
+    box-shadow: 0 6px 0 var(--purple-dark);
+}
+
+.btn-success {
+    background: var(--green);
+    box-shadow: 0 6px 0 var(--green-dark);
+}
+
+.btn-ghost {
+    background: #f0edff;
+    color: var(--purple);
+    box-shadow: 0 6px 0 #d9d2f7;
+}
+
+/* ----- lobby bits ----- */
+.me-tag {
+    text-align: center;
+    font-weight: 800;
+    color: var(--purple);
+    background: #f0edff;
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+}
+
+.status {
+    text-align: center;
+    font-weight: 700;
+    color: var(--muted);
+    min-height: 22px;
+    margin: 10px 0;
+}
+
+.players {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.players li {
+    font-weight: 800;
+    background: #f8f7ff;
+    border: 3px solid #ece8fb;
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* ----- word timer ----- */
+.timer-line {
+    text-align: center;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 14px;
+}
+
+.timer {
+    display: inline-block;
+    min-width: 46px;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 18px;
+    color: #fff;
+    background: var(--pink);
+    border-radius: 10px;
+    padding: 2px 10px;
+}
+
+/* ----- task ----- */
+.previous {
+    text-align: center;
+    font-weight: 800;
+    color: var(--ink);
+    background: #fff6da;
+    border: 3px solid #ffe9a8;
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    word-break: break-word;
+}
+
+/* ----- result ----- */
+.result {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: #f8f7ff;
+    border: 3px solid #ece8fb;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+    max-height: 340px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* ----- spinner (waiting) ----- */
+.spinner {
+    width: 54px;
+    height: 54px;
+    margin: 6px auto 18px;
+    border: 6px solid #ece8fb;
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ----- small screens ----- */
+@media (max-width: 480px) {
+    .card {
+        padding: 26px 20px;
+    }
+
+    .logo {
+        font-size: 28px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+}

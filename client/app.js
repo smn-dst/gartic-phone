@@ -46,6 +46,11 @@ id('btn-leave').onclick = () => {
     show('login')
 }
 
+// ask for a new round
+id('btn-new-round').onclick = () => {
+    ws.send(JSON.stringify({ type: 'new_round' }))
+}
+
 // --- word ---
 function sendWord() {
     stopWordCountdown()
@@ -111,5 +116,12 @@ ws.onmessage = (event) => {
     if (data.type === 'game_over') {
         show('over')
         id('over-content').textContent = JSON.stringify(data.notebooks, null, 2)
+    }
+
+    if (data.type === 'back_to_lobby') {
+        isReady = false
+        id('btn-ready').textContent = 'Je suis prêt'
+        id('lobby-status').textContent = ''
+        show('lobby')
     }
 }
