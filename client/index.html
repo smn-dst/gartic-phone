@@ -7,27 +7,48 @@
 </head>
 
 <body>
-    <!-- connection screen -->
-    <div id="connection-screen">
+    <!-- login -->
+    <div id="ecran-connexion">
         <h1>Rejoindre la partie</h1>
-        <input id="pseudo-input" placeholder="Ton pseudo" />
-        <button id="join-button">Rejoindre</button>
+        <input id="input-pseudo" placeholder="Ton pseudo" />
+        <button id="btn-rejoindre">Rejoindre</button>
     </div>
 
-    <!-- room screen -->
-    <div id="room-screen" style="display: none;">
+    <!-- lobby -->
+    <div id="ecran-salon" style="display: none;">
         <h1>Salon</h1>
-        <h2>Joueurs connectés :</h2>
-        <ul id="players-list"></ul>
-
+        <p id="lobby-me"></p>
         <button id="btn-ready">Je suis prêt</button>
+        <p id="lobby-status"></p>
+        <h2>Joueurs connectés :</h2>
+        <ul id="liste-joueurs"></ul>
     </div>
 
-    <!-- word screen -->
+    <!-- word -->
     <div id="word-screen" style="display: none;">
         <h1>Ton mot</h1>
-        <input id="word-input" placeholder="Tape ton mot" />
-        <button id="word-submit">Envoyer</button>
+        <p>Temps restant : <span id="word-timer"></span></p>
+        <input id="word-input" placeholder="Écris un mot" />
+        <button id="word-submit">Valider</button>
+    </div>
+
+    <!-- task (stub texte, le vrai canvas viendra) -->
+    <div id="task-screen" style="display: none;">
+        <h1 id="task-title"></h1>
+        <p id="task-previous"></p>
+        <input id="task-input" placeholder="Ta réponse (texte pour l'instant)" />
+        <button id="task-submit">Valider</button>
+    </div>
+
+    <!-- waiting -->
+    <div id="waiting-screen" style="display: none;">
+        <h1>En attente des autres joueurs...</h1>
+    </div>
+
+    <!-- over -->
+    <div id="over-screen" style="display: none;">
+        <h1>Partie terminée</h1>
+        <pre id="over-content"></pre>
     </div>
 
     <script src="/app.js"></script>

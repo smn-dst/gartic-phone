@@ -1,55 +1,101 @@
 const ws = new WebSocket('ws://' + location.host + '/ws')
 
-const connectionScreen = document.getElementById('connection-screen')
-const roomScreen = document.getElementById('room-screen')
-const pseudoInput = document.getElementById('pseudo-input')
-const playersList = document.getElementById('players-list')
+function id(x) { return document.getElementById(x) }
 
-// join click
-document.getElementById('join-button').onclick = () => {
-    const pseudo = pseudoInput.value.trim()
-    if (pseudo === '') return // no empty
-
-    ws.send(JSON.stringify({ type: 'join', pseudo: pseudo }))
-
-    connectionScreen.style.display = 'none'
-    roomScreen.style.display = 'block'
+const screens = {
+    login: id('ecran-connexion'),
+    lobby: id('ecran-salon'),
+    word: id('word-screen'),
+    task: id('task-screen'),
+    waiting: id('waiting-screen'),
+    over: id('over-screen'),
 }
 
-// server message
+function show(name) {
+    for (const s of Object.values(screens)) s.style.display = 'none'
+    screens[name].style.display = 'block'
+}
+
+let isReady = false
+let wordCountdown = null
+
+// --- join ---
+id('btn-rejoindre').onclick = () => {
+    const pseudo = id('input-pseudo').value.trim()
+    if (!pseudo) return
+    ws.send(JSON.stringify({ type: 'join', pseudo: pseudo }))
+    id('lobby-me').textContent = 'Connecté : ' + pseudo
+    show('lobby')
+}
+
+// --- ready toggle (revenir en arrière = annuler) ---
+id('btn-ready').onclick = () => {
+    isReady = !isReady
+    ws.send(JSON.stringify({ type: 'ready', ready: isReady }))
+    id('btn-ready').textContent = isReady ? 'Annuler' : 'Je suis prêt'
+    id('lobby-status').textContent = isReady ? 'En attente des autres joueurs...' : ''
+}
+
+// --- word ---
+function sendWord() {
+    stopWordCountdown()
+    const word = id('word-input').value.trim()
+    if (word) ws.send(JSON.stringify({ type: 'word', word: word }))
+    show('waiting')
+}
+id('word-submit').onclick = sendWord
+
+function startWordCountdown(seconds) {
+    let left = seconds
+    id('word-timer').textContent = left + 's'
+    wordCountdown = setInterval(() => {
+        left--
+        id('word-timer').textContent = left + 's'
+        if (left <= 0) sendWord() // auto-validate
+    }, 1000)
+}
+function stopWordCountdown() {
+    if (wordCountdown) { clearInterval(wordCountdown); wordCountdown = null }
+}
+
+// --- task (stub) ---
+id('task-submit').onclick = () => {
+    const value = id('task-input').value.trim()
+    if (!value) return
+    ws.send(JSON.stringify({ type: 'submit', content: value }))
+    id('task-input').value = ''
+    show('waiting')
+}
+
+// --- server messages ---
 ws.onmessage = (event) => {
     const data = JSON.parse(event.data)
 
     if (data.type === 'players') {
-        displayPlayers(data.players)
+        const list = id('liste-joueurs')
+        list.innerHTML = ''
+        for (const p of data.players) {
+            const li = document.createElement('li')
+            li.textContent = p.pseudo + (p.ready ? ' ✓' : '')
+            list.appendChild(li)
+        }
     }
 
-    if (data.type === 'game_start') {
-        document.getElementById('room-screen').style.display = 'none'
-        document.getElementById('word-screen').style.display = 'block'
+    if (data.type === 'ask_word') {
+        id('word-input').value = ''
+        show('word')
+        startWordCountdown(data.duration)
     }
 
-    if (data.type === 'all_words_in') {
-        alert('Tous les mots ont été reçus !')
+    if (data.type === 'draw_turn' || data.type === 'guess_turn') {
+        show('task')
+        id('task-title').textContent =
+            data.type === 'draw_turn' ? 'Dessine ce mot' : 'Devine ce dessin'
+        id('task-previous').textContent = 'Précédent : ' + data.previous
     }
-}
 
-function displayPlayers(players) {
-    playersList.innerHTML = '' // reset
-    for (const player of players) {
-        const li = document.createElement('li')
-        li.textContent = player.pseudo
-        playersList.appendChild(li)
+    if (data.type === 'game_over') {
+        show('over')
+        id('over-content').textContent = JSON.stringify(data.notebooks, null, 2)
     }
-}
-
-document.getElementById('btn-ready').onclick = () => {
-    ws.send(JSON.stringify({ type: 'ready' }))
-}
-
-// send word
-document.getElementById('word-submit').onclick = () => {
-    const word = document.getElementById('word-input').value.trim()
-    if (word === '') return
-    ws.send(JSON.stringify({ type: 'word', word: word }))
 }
