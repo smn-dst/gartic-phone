@@ -83,10 +83,12 @@ function finishWordPhase() {
 }
 
 function allWordsReceived() {
-    return notebooks.every((n) => n.entries.length >= 1)
+    return notebooks
+        .filter((n) => playerOrder.includes(n.ownerId))
+        .every((n) => n.entries.length >= 1)
 }
 
-// rotation: notebook = (pos - turn) mod n  (never your own)
+// rotation: notebook = (pos - turn) mod n, never own
 function notebookIndexFor(pos, turn) {
     const n = playerOrder.length
     return ((pos - turn) % n + n) % n
@@ -112,7 +114,11 @@ function startTurn() {
 
 // everyone submitted this turn?
 function allSubmitted() {
-    return notebooks.every((nb) => nb.entries.length === currentTurn + 1)
+    for (let pos = 0; pos < playerOrder.length; pos++) {
+        const nb = notebooks[notebookIndexFor(pos, currentTurn)]
+        if (nb.entries.length !== currentTurn + 1) return false
+    }
+    return true
 }
 
 // next turn or end
@@ -124,6 +130,27 @@ function advanceTurn() {
     }
     currentTurn++
     startTurn()
+}
+
+function handleLeaveDuringGame(leftId) {
+    // drop from order (notebook stays)
+    playerOrder = playerOrder.filter((id) => id !== leftId)
+
+    // < 2 left: end game
+    if (playerOrder.length < 2) {
+        broadcast({ type: 'game_over', notebooks: notebooks })
+        console.log('Game over (not enough players)')
+        gameStarted = false
+        return
+    }
+
+    // turn maybe complete now
+    if (currentTurn === 0) {
+        // word phase
+        if (allWordsReceived()) finishWordPhase()
+    } else {
+        if (allSubmitted()) advanceTurn()
+    }
 }
 
 app.get(
@@ -150,6 +177,14 @@ app.get(
                     }
                     players.set(player.id, player)
                     console.log(player.pseudo, 'joined')
+                    broadcastPlayers()
+                }
+
+                // leave lobby pre-game (change pseudo)
+                if (data.type === 'leave' && player && !gameStarted) {
+                    players.delete(player.id)
+                    console.log(player.pseudo, 'left the lobby')
+                    player = null
                     broadcastPlayers()
                 }
 
@@ -189,11 +224,20 @@ app.get(
             },
 
             onClose() {
-                if (player) {
-                    players.delete(player.id)
-                    console.log(player.pseudo, 'left')
+                if (!player) return
+
+                players.delete(player.id)
+                console.log(player.pseudo, 'left')
+
+                // no game: lobby update
+                if (!gameStarted) {
                     broadcastPlayers()
+                    return
                 }
+
+                // in game: handle leave
+                handleLeaveDuringGame(player.id)
+                broadcastPlayers()
             },
         }
     })
