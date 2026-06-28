@@ -3,8 +3,8 @@ const ws = new WebSocket('ws://' + location.host + '/ws')
 function id(x) { return document.getElementById(x) }
 
 const screens = {
-    login: id('ecran-connexion'),
-    lobby: id('ecran-salon'),
+    login: id('login-screen'),
+    lobby: id('lobby-screen'),
     word: id('word-screen'),
     task: id('task-screen'),
     waiting: id('waiting-screen'),
@@ -28,12 +28,22 @@ id('btn-rejoindre').onclick = () => {
     show('lobby')
 }
 
-// --- ready toggle (revenir en arrière = annuler) ---
+// --- ready toggle ---
 id('btn-ready').onclick = () => {
     isReady = !isReady
     ws.send(JSON.stringify({ type: 'ready', ready: isReady }))
     id('btn-ready').textContent = isReady ? 'Annuler' : 'Je suis prêt'
     id('lobby-status').textContent = isReady ? 'En attente des autres joueurs...' : ''
+}
+
+// leave lobby -> login
+id('btn-leave').onclick = () => {
+    ws.send(JSON.stringify({ type: 'leave' }))
+    isReady = false
+    id('btn-ready').textContent = 'Je suis prêt'
+    id('lobby-status').textContent = ''
+    id('input-pseudo').value = ''
+    show('login')
 }
 
 // --- word ---
@@ -71,8 +81,9 @@ id('task-submit').onclick = () => {
 ws.onmessage = (event) => {
     const data = JSON.parse(event.data)
 
+    // players list
     if (data.type === 'players') {
-        const list = id('liste-joueurs')
+        const list = id('players-list')
         list.innerHTML = ''
         for (const p of data.players) {
             const li = document.createElement('li')
@@ -81,12 +92,14 @@ ws.onmessage = (event) => {
         }
     }
 
+    // ask word
     if (data.type === 'ask_word') {
         id('word-input').value = ''
         show('word')
         startWordCountdown(data.duration)
     }
 
+    // draw or guess turn
     if (data.type === 'draw_turn' || data.type === 'guess_turn') {
         show('task')
         id('task-title').textContent =
@@ -94,6 +107,7 @@ ws.onmessage = (event) => {
         id('task-previous').textContent = 'Précédent : ' + data.previous
     }
 
+    // game over
     if (data.type === 'game_over') {
         show('over')
         id('over-content').textContent = JSON.stringify(data.notebooks, null, 2)

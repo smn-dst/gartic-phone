@@ -8,20 +8,21 @@
 
 <body>
     <!-- login -->
-    <div id="ecran-connexion">
+    <div id="login-screen">
         <h1>Rejoindre la partie</h1>
         <input id="input-pseudo" placeholder="Ton pseudo" />
         <button id="btn-rejoindre">Rejoindre</button>
     </div>
 
     <!-- lobby -->
-    <div id="ecran-salon" style="display: none;">
+    <div id="lobby-screen" style="display: none;">
         <h1>Salon</h1>
         <p id="lobby-me"></p>
         <button id="btn-ready">Je suis prêt</button>
         <p id="lobby-status"></p>
         <h2>Joueurs connectés :</h2>
-        <ul id="liste-joueurs"></ul>
+        <ul id="players-list"></ul>
+        <button id="btn-leave">Changer de pseudo</button>
     </div>
 
     <!-- word -->
@@ -32,7 +33,7 @@
         <button id="word-submit">Valider</button>
     </div>
 
-    <!-- task (stub texte, le vrai canvas viendra) -->
+    <!-- task (stub texte) -->
     <div id="task-screen" style="display: none;">
         <h1 id="task-title"></h1>
         <p id="task-previous"></p>
